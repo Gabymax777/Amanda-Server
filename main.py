@@ -25,24 +25,23 @@ intents.message_content = True
 bot = commands.Bot(command_prefix=".", intents=intents)
 TOKEN_AMANDA = os.environ.get("TOKEN_AMANDA")
 
-# =========================================================================
-# ⚙️ AJUSTES DE CONFIGURACIÓN DE AMANDA
-# =========================================================================
-# 📌 ID del canal de donde Amanda lee las sugerencias originales (enviadas por Clay)
-ID_CANAL_SUGERENCIAS = 1505170785772503160 
+# 📌 Canal de origen donde Clay envía las sugerencias
+ID_CANAL_SUGERENCIAS = 1505170785772503160
 
-# 📩 OPCIÓN 1: Activa esto (True) si quieres recibir el informe por Mensaje Privado (DM)
-ENVIAR_POR_DM = True  
-
-# 📺 OPCIÓN 2: Si pones lo de arriba en False, escribe aquí la ID del canal de Staff donde se publicará
-ID_CANAL_INFORMES_STAFF = 123456789012345678  
+# 📌 Canal de destino por defecto si eliges la opción de "Canal de Staff"
+ID_CANAL_INFORMES_STAFF = 1505914253918343259  
 
 
 # =========================================================================
-# 📊 COMANDO DE BARRA: /resumen_sugerencias
+# 📊 COMANDO DE BARRA: /resumen_sugerencias (Con opción interactiva)
 # =========================================================================
 @bot.tree.command(name="resumen_sugerencias", description="Genera un reporte técnico consolidado de las sugerencias")
-async def resumen_sugerencias(interaction: discord.Interaction):
+@app_commands.describe(enviar_a="Elige dónde quieres recibir el informe en este momento")
+@app_commands.choices(enviar_a=[
+    app_commands.Choice(name="📬 Recibir por Mensaje Privado (DM)", value="dm"),
+    app_commands.Choice(name="📺 Enviar al Canal de Staff", value="canal")
+])
+async def resumen_sugerencias(interaction: discord.Interaction, enviar_a: str):
     # Defer efímero para mantener el comando vivo mientras procesa datos
     await interaction.response.defer(ephemeral=True)
 
@@ -54,7 +53,7 @@ async def resumen_sugerencias(interaction: discord.Interaction):
     conteo_peticiones = {}
     total_leidos = 0
 
-    # Amanda procesa el historial del canal
+    # Amanda procesa el historial del canal de sugerencias
     async for mensaje in canal.history(limit=100):
         if mensaje.embeds:
             for embed in mensaje.embeds:
@@ -95,26 +94,25 @@ async def resumen_sugerencias(interaction: discord.Interaction):
     )
     embed_reporte.set_footer(text="Amanda Technical Manager • Análisis en tiempo real")
 
-    # 🚀 GESTIÓN DE ENVÍO SEGÚN CONFIGURACIÓN
-    if ENVIAR_POR_DM:
+    # 🚀 LÓGICA DE ENVÍO SEGÚN LA ELECCIÓN DEL COMANDO
+    if enviar_a == "dm":
         try:
             await interaction.user.send(embed=embed_reporte)
             await interaction.followup.send("📥 ¡Listo! Te he enviado el informe completo a tus mensajes privados.", ephemeral=True)
         except discord.Forbidden:
-            # Plan de respaldo si tus DMs del servidor están apagados
             await interaction.followup.send(
-                "❌ No pude enviarte el mensaje privado. Asegúrate de permitir mensajes directos de miembros del servidor en tus Ajustes de Privacidad.", 
+                "❌ No pude enviarte el mensaje privado. Asegúrate de permitir mensajes directos en tus Ajustes de Privacidad del servidor.", 
                 ephemeral=True
             )
-    else:
+    elif enviar_a == "canal":
         canal_staff = bot.get_channel(ID_CANAL_INFORMES_STAFF)
         if canal_staff:
             await canal_staff.send(embed=embed_reporte)
             await interaction.followup.send(f"📊 ¡Listo! He publicado el informe consolidado en el canal <#{ID_CANAL_INFORMES_STAFF}>.", ephemeral=True)
         else:
-            # Plan de respaldo si la ID del canal del staff está mal copiada
+            # Plan de respaldo en pantalla por si la ID está mal configurada
             await interaction.followup.send(
-                f"⚠️ Error: No encontré la ID del canal de Staff. Te muestro el reporte aquí provisionalmente:\n", 
+                f"⚠️ Error: No encontré la ID del canal de Staff. Te muestro el reporte aquí de forma privada:\n", 
                 embed=embed_reporte, 
                 ephemeral=True
             )
