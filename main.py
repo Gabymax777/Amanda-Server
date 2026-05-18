@@ -27,7 +27,7 @@ bot = commands.Bot(command_prefix="/", intents=intents)
 TOKEN_AMANDA = os.environ.get("TOKEN_AMANDA")
 
 # 📌 PEGA AQUÍ LA ID DEL CANAL DONDE CLAY ENVÍA LAS SUGERENCIAS ACTUAlMENTE
-ID_CANAL_SUGERENCIAS = 1479175423764987914  
+ID_CANAL_SUGERENCIAS = 1505170785772503160 
 
 # --- COMANDO DE BARRA /RESUMEN_SUGERENCIAS ---
 @bot.tree.command(name="resumen_sugerencias", description="Genera un reporte técnico consolidado de las sugerencias")
