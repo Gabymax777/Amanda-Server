@@ -23,7 +23,7 @@ threading.Thread(target=run, daemon=True).start()
 intents = discord.Intents.default()
 intents.message_content = True  # CRÍTICO: Para poder leer el historial del canal de sugerencias
 
-bot = commands.Bot(command_prefix="/", intents=intents)
+bot = commands.Bot(command_prefix=".", intents=intents)
 TOKEN_AMANDA = os.environ.get("TOKEN_AMANDA")
 
 # 📌 PEGA AQUÍ LA ID DEL CANAL DONDE CLAY ENVÍA LAS SUGERENCIAS ACTUAlMENTE
